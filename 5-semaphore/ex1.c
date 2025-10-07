@@ -3,18 +3,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
-
 #include <sys/ipc.h>  
 #include <sys/shm.h>  
 #include <sys/types.h>  
-#include <stdio.h>   
-#include <stdlib.h>     
-#include <string.h>
 #include <time.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <ctype.h>
-#include <semaphore.h>
+#include <sys/sem.h>
+#include <errno.h>
 
 //----------FONCTIONS ZONES DONNEES PARTAGEES----------------
 
@@ -79,15 +74,64 @@ int detruireZDC(int shmId){
     return -1;
 }
 
+
+
+
 //----------------FONCTIONS SEMAPHORES-----------------------
 
+int creer_nSem(int n, key_t cle, ushort tab[]){
 
+    if(n<=0){
+        perror("paramètre(s) n ou tab invalide(s)");
+        return -1;
+    }
 
+    int semId;
 
+    if((semId = semget(cle, n, IPC_CREAT | IPC_EXCL | 0600)) == -1){
+        semId = semget(cle, n, IPC_EXCL);
+        if(semId == -1){
+            perror("semget recuperation");
+            return -1;
+        }
+        printf("Le semaphore existait dejà, id =%d\n", semId);
+    }
+    else{
+        printf("semaphore crée, semid: %d\n", semId);
 
+        if (semctl(semId, 0, SETALL, tab) == -1){
+            perror("erreur lors de l'initialisation des semaphores\n");
+            return -1;
+        }
+        else{
+            printf("semaphores initialisés\n");
+        }
+    }
 
+    return semId;
+}
 
+int afficheValeur(int semId, int n) {
+    for (int i = 0; i < n; i++) {
+        ushort valeur = semctl(semId, i, GETVAL);
+        if (valeur == -1) {
+            perror("semctl GETVAL");
+            return -1;
+        }
+        printf("Ensemble semId = %d, Sémaphore n°%d a pour valeur: %d\n", semId, i+1, valeur);
+    }
+    return 1;
+} 
 
+int supprimerSemaphore(int semId) {
+    if (semctl(semId, 0, IPC_RMID) == -1) {
+        perror("Erreur suppression sémaphore");
+        return -1;
+    }
+
+    printf("Sémaphore supprimé avec succès (semId = %d)\n", semId);
+    return 0;
+}
 
 
 //---------------------------MAIN----------------------------
@@ -96,6 +140,22 @@ int main(){
 
     key_t cle = ftok("./",5);
 
+    if (cle == -1) {
+        perror("ftok");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("-------------DEBUT TESTS SEM-------------\n\n");
+
+    ushort tableau[] = {1,2,4,5,8,9,12};
+    int n = sizeof(tableau) / sizeof(tableau[0]);
+
+    int semId = creer_nSem(n, cle, tableau);
+    afficheValeur(semId, n);
+
+    printf("-------------FIN TESTS SEM-------------\n\n");
+
+    
     int shmId = creerZDC(100, "ex3", 0, cle);
     infosZDC(shmId);
 
@@ -108,9 +168,10 @@ int main(){
 
     printf("Je suis le père, PID = %d\n", pidp); 
 
+    
     //-------------DEBUT BOUCLE-------------
     int i = 0;
-    for(i=0; i<2; i++){
+    for(i=0; i<4; i++){
         pid=fork();
 
         if(pid<0){
@@ -129,8 +190,22 @@ int main(){
 
                 printf("\n-------------FIN FILS1-----------\n\n");
             }
-            else{
+            else if(i==1){
                 printf("\n\n---------PROGRAMME FILS2---------\n");
+
+                printf("Fils n°%d de %d, mon PID = %d\n", i+1, pidp, getpid());
+
+                printf("\n-------------FIN FILS2-----------\n\n");
+            }
+            else if(i==2){
+                printf("\n\n---------PROGRAMME FILS3---------\n");
+
+                printf("Fils n°%d de %d, mon PID = %d\n", i+1, pidp, getpid());
+
+                printf("\n-------------FIN FILS3-----------\n\n");
+            }
+            else{
+                printf("\n\n---------PROGRAMME FILS4---------\n");
 
                 printf("Fils n°%d de %d, mon PID = %d\n", i+1, pidp, getpid());
                 for(int j=0; adresse[j]; j++){
@@ -138,7 +213,7 @@ int main(){
                 }
                 printf("ZDC après le fils 2: %s", adresse);
 
-                printf("\n-------------FIN FILS2-----------\n\n");
+                printf("\n-------------FIN FILS4-----------\n\n");
             }
             shmdt(adresse);
             exit(0);
@@ -148,14 +223,16 @@ int main(){
     //-------------FIN BOUCLE----------------
 
 
-    for(i=0; i<2; i++){
+    for(i=0; i<4; i++){
         wait(NULL);
     }
 
-    //---LECTURE DE LA ZDC PAR LE PERE---
-    printf("\nMessage lu par le père: %s\n\n", adresse);
+    printf("---LECTURE DE LA ZDC PAR LE PERE---\n");
+    printf("Message lu par le père: %s\n\n", adresse);
 
     shmdt(adresse);
     detruireZDC(shmId);
+    supprimerSemaphore(semId);
+
     return 0;
 }
