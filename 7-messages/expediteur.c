@@ -14,7 +14,20 @@ typedef struct {
 } MSG;
 
 int a_droit(struct msqid_ds info){
-    printf("uid user:%d\n", getuid());
+    int uid = getuid();
+    int gid = getgid();
+    int infoUid = info.msg_perm.uid;
+    int infoGid = info.msg_perm.gid;
+    int mode = info.msg_perm.mode;
+
+    if(uid == infoUid){
+        if((mode & 0200) == 0){printf("pas les droits\n"); return 0;}
+    } else if(gid == infoGid){
+        if((mode & 0020) == 0){printf("pas les droits\n"); return 0;}
+    } else {
+        if((mode & 0002) == 0){printf("pas les droits\n"); return 0;}
+    }
+
     return 1;
 }
 
@@ -75,11 +88,11 @@ int main(int argc, char *argv[]){
 
     //----------CREATION-ECRITURE MESSAGE------------------
 
-    if(a_droit(info)){
+    if (a_droit(info)) {
         MSG msg;
         msg.type = type;
         strcpy(msg.message, argv[2]);
-
+        
         if(msgsnd(msgid, &msg, strlen(msg.message), 0) == -1){
             perror("erreur envoi du message dans: msgsnd");
             return -1;
