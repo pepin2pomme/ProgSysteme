@@ -9,7 +9,7 @@
 #include <errno.h>
 
 typedef struct {
-    int type;
+    long type;
     char message[30];
 } MSG;
 
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
     
-    int type = atol(argv[1]);
+    long type = atol(argv[1]);
     if(type < 0){
         printf("Le premier parametre doit etre entier strictement positif\n");
         return 1;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
 
     //--------------RECUPERATION CLE--------------------
 
-    key_t cle = ftok("./",5);
+    key_t cle = ftok("cle.txt",5);
 
     if (cle == -1) {
         perror("ftok");
