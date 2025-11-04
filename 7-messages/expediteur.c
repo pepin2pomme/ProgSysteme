@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
 #include <sys/ipc.h>
+#include <sys/msg.h>
+
+#include <errno.h>
 
 typedef struct {
     int type;
@@ -56,7 +60,7 @@ int main(int argc, char *argv[]){
     msg.type = type;
     strncpy(msg.message, argv[2], 30);
 
-    if(msgsnd(msgid, &msg, 30) == -1){
+    if(msgsnd(msgid, &msg, 30, 0) == -1){
         perror("erreur envoi du message dans: msgsnd");
         return -1;
     }
