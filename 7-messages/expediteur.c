@@ -62,9 +62,9 @@ int main(int argc, char *argv[]){
 
     //-----CREATION-RECUPERATION FILE DE MESSAGES--------
 
-    int msgid = msgget(cle, IPC_CREAT | 0666);
+    int msgid = msgget(cle, IPC_CREAT | 0600);
     if (msgid == -1){
-        msgid = msgget(cle, IPC_EXCL | 0666);
+        msgid = msgget(cle, IPC_EXCL | 0600);
         if (msgid == -1){
             perror("Erreur lors de msgget");
             return -1;
@@ -101,6 +101,6 @@ int main(int argc, char *argv[]){
         printf("MESSAGE ECRIT: %s\n\n", msg.message);
     }
     
-    printf("-------FIN PROGRAMME-------\n\n");
+    printf("\n-------FIN PROGRAMME-------\n");
 
 }
