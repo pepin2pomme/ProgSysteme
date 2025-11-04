@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
         exit(EXIT_FAILURE);
     }
 
-    //---------CREATION FILE DE MESSAGES-------------------
+    //-----CREATION-RECUPERATION FILE DE MESSAGES--------
 
     int msgid = msgget(cle, IPC_CREAT | 0666);
     if (msgid == -1){
@@ -54,7 +54,21 @@ int main(int argc, char *argv[]){
         printf("La file de message existait déjà.\n");
     }
 
-    //----------CREATION-ECRITURE MESSAGE-------------------
+    //---------INFORMATIONS FILE DE MESSAGES-------------
+
+    struct msqid_ds info;
+    if(msgctl(msgid, IPC_STAT, &info) == -1){
+        perror("msgctl");
+        return -1;
+    }
+
+    printf("\n-------INFORMATIONS--------\n");
+    printf("File de messages:\nClé: %d;\nmsgid: %d;\n", cle, msgid);
+    printf("UID: %d; GID: %d; DROITS: %o;\n", info.msg_perm.uid, info.msg_perm.gid, info.msg_perm.mode);
+    printf("Nb messages dans la file (avant ajout): %ld\n", info.msg_qnum);
+    printf("---------------------------\n\n");
+
+    //----------CREATION-ECRITURE MESSAGE------------------
 
     MSG msg;
     msg.type = type;
@@ -64,5 +78,8 @@ int main(int argc, char *argv[]){
         perror("erreur envoi du message dans: msgsnd");
         return -1;
     }
+
+    printf("MESSAGE ECRIT\n\n");
+    printf("-------FIN PROGRAMME-------\n\n");
 
 }

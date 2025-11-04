@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    printf("Arguments ok\n");
+    printf("Arguments valides\n");
 
     //--------------RECUPERATION CLE--------------------
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){
         return -1;
     }
 
-    printf("File de messages recuperee:\n  cle: %d\n   msgid: %d\n", cle, msgid);
+    printf("File de messages recuperée\n");
 
     //---------INFORMATIONS FILE DE MESSAGES-------------
 
@@ -74,7 +74,8 @@ int main(int argc, char *argv[]){
             return -1;
         }
         
-        printf("Message reçu : \n  Type: %ld;\n  Message: %s;\n", msg.type, msg.message);
+        printf("Message reçu : \n  Type: %ld;\n  Message: %s;\n\n", msg.type, msg.message);
+        printf("-------FIN PROGRAMME-------\n\n");
     }
     
 }
