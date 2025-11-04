@@ -67,12 +67,14 @@ int main(int argc, char *argv[]){
     //-------------------LECTURE MESSAGE------------------
 
     if(nb_messages > 0){
-        MSG msg;    
+        MSG msg;
 
-        if(msgrcv(msgid, &msg, 30, type, IPC_NOWAIT) == -1){
+        int n = msgrcv(msgid, &msg, sizeof(msg.message), type, 0);
+        if(n == -1){
             perror("msgrcv");
             return -1;
         }
+        msg.message[n] = '\0';
         
         printf("Message reçu : \n  Type: %ld;\n  Message: %s;\n\n", msg.type, msg.message);
         printf("-------FIN PROGRAMME-------\n\n");

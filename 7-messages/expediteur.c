@@ -13,6 +13,11 @@ typedef struct {
     char message[30];
 } MSG;
 
+int a_droit(struct msqid_ds info){
+    printf("uid user:%d\n", getuid());
+    return 1;
+}
+
 int main(int argc, char *argv[]){
 
     //----------VERIFICATIONS PARAMETRES-----------------
@@ -70,16 +75,19 @@ int main(int argc, char *argv[]){
 
     //----------CREATION-ECRITURE MESSAGE------------------
 
-    MSG msg;
-    msg.type = type;
-    strncpy(msg.message, argv[2], 30);
+    if(a_droit(info)){
+        MSG msg;
+        msg.type = type;
+        strcpy(msg.message, argv[2]);
 
-    if(msgsnd(msgid, &msg, strlen(msg.message), 0) == -1){
-        perror("erreur envoi du message dans: msgsnd");
-        return -1;
+        if(msgsnd(msgid, &msg, strlen(msg.message), 0) == -1){
+            perror("erreur envoi du message dans: msgsnd");
+            return -1;
+        }
+
+        printf("MESSAGE ECRIT: %s\n\n", msg.message);
     }
-
-    printf("MESSAGE ECRIT\n\n");
+    
     printf("-------FIN PROGRAMME-------\n\n");
 
 }
