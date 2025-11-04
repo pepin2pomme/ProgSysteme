@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/ipc.h>
+
+typedef struct {
+    int type;
+    char message[30];
+} MSG;
+
+int main(int argc, char *argv[]){
+
+    //----------VERIFICATIONS PARAMETRES-----------------
+
+    if(argc!=3){
+        printf("Il faut 2 arguments\n");
+        return 1;
+    }
+    
+    int type = atol(argv[1]);
+    if(type < 0){
+        printf("Le premier parametre doit etre entier strictement positif\n");
+        return 1;
+    }
+
+    if(strlen(argv[2]) > 30){
+        printf("Longueur max parametre 2 de 30 caractères\n");
+        return 1; 
+    }
+
+    //--------------RECUPERATION CLE--------------------
+
+    key_t cle = ftok("./",5);
+
+    if (cle == -1) {
+        perror("ftok");
+        exit(EXIT_FAILURE);
+    }
+
+    //---------CREATION FILE DE MESSAGES-------------------
+
+    int msgid = msgget(cle, IPC_CREAT | 0666);
+    if (msgid == -1){
+        msgid = msgget(cle, IPC_EXCL | 0666);
+        if (msgid == -1){
+            perror("Erreur lors de msgget");
+            return -1;
+        }
+        printf("La file de message existait déjà.\n");
+    }
+
+    //----------CREATION-ECRITURE MESSAGE-------------------
+
+    MSG msg;
+    msg.type = type;
+    strncpy(msg.message, argv[2], 30);
+
+    if(msgsnd(msgid, &msg, 30) == -1){
+        perror("erreur envoi du message dans: msgsnd");
+        return -1;
+    }
+
+}
