@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
     msg.type = type;
     strncpy(msg.message, argv[2], 30);
 
-    if(msgsnd(msgid, &msg, 30, 0) == -1){
+    if(msgsnd(msgid, &msg, strlen(msg.message), 0) == -1){
         perror("erreur envoi du message dans: msgsnd");
         return -1;
     }

@@ -49,15 +49,32 @@ int main(int argc, char *argv[]){
 
     printf("File de messages recuperee:\n  cle: %d\n   msgid: %d\n", cle, msgid);
 
-    //-------------------LECTURE MESSAGE------------------
+    //---------INFORMATIONS FILE DE MESSAGES-------------
 
-    MSG msg;
-
-    if(msgrcv(msgid, &msg, 30, type, IPC_NOWAIT) == -1){
-        perror("erreur recup message dans msgrcv");
+    struct msqid_ds info;
+    if(msgctl(msgid, IPC_STAT, &info) == -1){
+        perror("msgctl");
         return -1;
     }
 
-    printf("Message reçu : \n   Type: %ld\n  Message: %s\n", msg.type, msg.message);
+    int nb_messages = info.msg_qnum;
 
+    printf("\n-------INFORMATIONS--------\n");
+    printf("File de messages:\nClé: %d;\nmsgid: %d;\n", cle, msgid);
+    printf("Nb messages dans la file: %ld\n", info.msg_qnum);
+    printf("---------------------------\n\n");
+
+    //-------------------LECTURE MESSAGE------------------
+
+    if(nb_messages > 0){
+        MSG msg;    
+
+        if(msgrcv(msgid, &msg, 30, type, IPC_NOWAIT) == -1){
+            perror("msgrcv");
+            return -1;
+        }
+        
+        printf("Message reçu : \n  Type: %ld;\n  Message: %s;\n", msg.type, msg.message);
+    }
+    
 }
