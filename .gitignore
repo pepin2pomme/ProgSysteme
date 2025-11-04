@@ -54,9 +54,6 @@ dkms.conf
 # debug information files
 *.dwo
 
-# pdf files
-*.pdf
-
 #.vscode viles
 *.json
 
